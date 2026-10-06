@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPD Simulator</title>
+<meta name="description" content="See what a given pixels-per-degree looks like on text, code and images, simulated on your own display.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-view="split">
+
+<header class="masthead">
+  <h1>PPD Simulator</h1>
+  <p>Pixels per degree is how many pixels fit into one degree of your vision. Tell this page about the screen
+  you are looking at, then pick a PPD to see how text, code and images would look at that density.</p>
+</header>
+
+<main>
+
+<section class="setup" aria-labelledby="setup-h">
+  <h2 id="setup-h">Your display</h2>
+  <div class="fields">
+    <label class="field field-wide">
+      <span>Preset</span>
+      <select id="preset"><option value="">Custom</option></select>
+    </label>
+    <label class="field">
+      <span>Diagonal</span>
+      <span class="unit-input"><input id="diag" type="number" inputmode="decimal" min="3" max="200" step="0.1"><i>in</i></span>
+    </label>
+    <div class="field">
+      <span id="res-l">Native resolution</span>
+      <span class="pair" role="group" aria-labelledby="res-l">
+        <input id="resW" type="number" inputmode="numeric" min="320" max="16000" step="1" aria-label="Horizontal pixels">
+        <i>×</i>
+        <input id="resH" type="number" inputmode="numeric" min="240" max="16000" step="1" aria-label="Vertical pixels">
+      </span>
+    </div>
+    <div class="field">
+      <span id="dist-l">Viewing distance</span>
+      <span class="pair" role="group" aria-labelledby="dist-l">
+        <input id="dist" type="number" inputmode="decimal" min="1" step="1" aria-label="Distance from eyes to screen">
+        <select id="unit" aria-label="Distance unit"><option value="cm">cm</option><option value="in">in</option></select>
+      </span>
+    </div>
+  </div>
+
+  <dl class="stats">
+    <div class="stat stat-hero"><dt>Native PPD</dt><dd id="s-ppd">–</dd></div>
+    <div class="stat"><dt>Pixel density</dt><dd id="s-ppi">–</dd></div>
+    <div class="stat"><dt>Pixel pitch</dt><dd id="s-pitch">–</dd></div>
+    <div class="stat"><dt>Horizontal field of view</dt><dd id="s-fov">–</dd></div>
+    <div class="stat"><dt>Reaches 60 PPD at</dt><dd id="s-d60">–</dd></div>
+  </dl>
+  <p class="notice" id="scale-notice" hidden></p>
+</section>
+
+<section class="target" aria-label="Simulated PPD">
+  <div class="target-row">
+    <label for="target">Simulate</label>
+    <input id="target" type="range" min="5" max="60" step="0.5">
+    <span class="unit-input target-num"><input id="targetNum" type="number" inputmode="decimal" min="5" step="0.5" aria-label="Simulated PPD"><i>PPD</i></span>
+  </div>
+  <div class="target-row">
+    <div class="chips" id="chips"></div>
+    <div class="seg" role="group" aria-label="View">
+      <button type="button" data-view="split">Split</button>
+      <button type="button" data-view="sim">Simulated</button>
+      <button type="button" data-view="native">Native</button>
+    </div>
+  </div>
+</section>
+<p class="equiv" id="equiv"></p>
+
+<section class="panel" id="panel-text">
+  <header>
+    <h2>Narrative text</h2>
+    <div class="opts">
+      <label>Size <select id="fontSize"><option>12</option><option>14</option><option>16</option><option>18</option><option>20</option></select></label>
+      <label>Face <select id="font"><option value="sans">Sans</option><option value="serif">Serif</option></select></label>
+    </div>
+  </header>
+  <div class="tags"><span class="tag tag-native">Your display · <b data-native></b> PPD</span><span class="tag tag-sim">Simulated · <b data-target></b> PPD</span></div>
+  <div class="stage"><canvas class="sim"></canvas><canvas class="native"></canvas><div class="handle" role="slider" tabindex="0" aria-label="Comparison split" aria-valuemin="0" aria-valuemax="100"></div></div>
+</section>
+
+<section class="panel" id="panel-code">
+  <header>
+    <h2>Code</h2>
+    <div class="opts">
+      <label>Size <select id="codeSize"><option>11</option><option>12</option><option>13</option><option>14</option><option>16</option></select></label>
+    </div>
+  </header>
+  <div class="tags"><span class="tag tag-native">Your display · <b data-native></b> PPD</span><span class="tag tag-sim">Simulated · <b data-target></b> PPD</span></div>
+  <div class="stage"><canvas class="sim"></canvas><canvas class="native"></canvas><div class="handle" role="slider" tabindex="0" aria-label="Comparison split" aria-valuemin="0" aria-valuemax="100"></div></div>
+</section>
+
+<section class="panel" id="panel-image">
+  <header>
+    <h2>Images</h2>
+    <div class="opts">
+      <label>Source <select id="imageSrc"></select></label>
+      <label class="file-btn">Use your own…<input id="file" type="file" accept="image/*"></label>
+    </div>
+  </header>
+  <div class="tags"><span class="tag tag-native">Your display · <b data-native></b> PPD</span><span class="tag tag-sim">Simulated · <b data-target></b> PPD</span></div>
+  <div class="stage"><canvas class="sim"></canvas><canvas class="native"></canvas><div class="handle" role="slider" tabindex="0" aria-label="Comparison split" aria-valuemin="0" aria-valuemax="100"></div></div>
+  <p class="credit" id="credit"></p>
+</section>
+
+<section class="notes">
+  <h2>How this works</h2>
+  <p>From the diagonal and resolution the page works out the size of one of your pixels, and from your viewing
+  distance the angle that pixel covers. That gives your display's native PPD. To simulate a lower PPD, each
+  sample is rendered onto a coarser pixel grid and every one of those coarse pixels is then drawn as a block of
+  your real pixels, so it covers exactly the angle it would on the simulated display. Everything keeps the same
+  physical size on your screen; only the pixel density changes.</p>
+  <ul>
+    <li><b>You can only simulate downwards.</b> A display can't show more detail than it has. To preview a higher
+    PPD, move back from the screen and update the viewing distance.</li>
+    <li><b>Keep browser zoom at 100%</b> and enter the panel's native resolution, not a scaled "looks like" one.
+    Stay at the distance you entered: the simulation is only right from there.</li>
+    <li><b>Text is antialiased in greyscale.</b> Real low-density displays often use subpixel rendering and
+    hinting, which can make small text a little crisper than shown here.</li>
+    <li><b>PPD is measured at the centre of the screen.</b> On a flat panel it rises slightly towards the edges.
+    Headset figures are approximate centre values and ignore lens blur.</li>
+  </ul>
+</section>
+
+</main>
+
+<script src="photos.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
